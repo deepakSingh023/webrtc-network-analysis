@@ -39,7 +39,7 @@ public class RoomService {
             return false;
         }
 
-        room.setHost(guest);
+        room.setGuest(guest);
 
         return true;
     }
