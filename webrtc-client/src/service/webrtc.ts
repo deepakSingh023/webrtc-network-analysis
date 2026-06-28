@@ -1,5 +1,6 @@
-export const peerConnection =
-    new RTCPeerConnection({
+
+export function createPeerConnection(): RTCPeerConnection {
+    return new RTCPeerConnection({
         iceServers: [
             {
                 urls:
@@ -7,3 +8,4 @@ export const peerConnection =
             }
         ]
     });
+}
