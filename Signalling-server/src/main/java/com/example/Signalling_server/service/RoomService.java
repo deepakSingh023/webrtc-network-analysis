@@ -29,13 +29,16 @@ public class RoomService {
 
     }
 
-    public boolean joinRoom(
-            String roomId,
-            WebSocketSession guest
-    ){
+    public boolean joinRoom(String roomId,
+                            WebSocketSession guest) {
+
         Room room = rooms.get(roomId);
 
-        if (room == null){
+        if (room == null) {
+            return false;
+        }
+
+        if (room.getGuest() != null) {
             return false;
         }
 
@@ -48,6 +51,38 @@ public class RoomService {
             String roomId
     ) {
         return rooms.get(roomId);
+    }
+
+    public void removeSession(WebSocketSession session) {
+
+        rooms.entrySet().removeIf(entry -> {
+
+            Room room = entry.getValue();
+
+            if (room.getHost() != null &&
+                    room.getHost().getId().equals(session.getId())) {
+
+                System.out.println("Host left room " + room.getRoomId());
+                room.setHost(null);
+            }
+
+            if (room.getGuest() != null &&
+                    room.getGuest().getId().equals(session.getId())) {
+
+                System.out.println("Guest left room " + room.getRoomId());
+                room.setGuest(null);
+            }
+
+            boolean deleteRoom =
+                    room.getHost() == null &&
+                            room.getGuest() == null;
+
+            if (deleteRoom) {
+                System.out.println("Deleting room " + room.getRoomId());
+            }
+
+            return deleteRoom;
+        });
     }
 
 

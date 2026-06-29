@@ -47,7 +47,8 @@ public class SignalingHandler extends TextWebSocketHandler {
                  "ICE_CANDIDATE" -> relayMessage(
                     session,
                     msg
-            );
+                 );
+            case "END_CALL" -> handleEndCall(session, msg);
         }
     }
 
@@ -207,9 +208,18 @@ public class SignalingHandler extends TextWebSocketHandler {
     ) {
 
         System.out.println(
-                "Disconnected : "
-                        + session.getId()
+                "Disconnected : " + session.getId()
         );
 
+        roomService.removeSession(session);
+    }
+
+    private void handleEndCall(
+            WebSocketSession session,
+            SignalMessage msg
+    ) {
+        try {
+            session.close();
+        } catch (Exception ignored) {}
     }
 }
