@@ -1,9 +1,11 @@
 package com.example.Signalling_server.service;
 
 
+import com.example.Signalling_server.dto.ExperimentData;
 import com.example.Signalling_server.dto.ExperimentDto;
 import com.example.Signalling_server.dto.ExperimentResult;
 import com.example.Signalling_server.dto.ExperimentSampleDto;
+import com.example.Signalling_server.enums.DataType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,7 +58,8 @@ public class ExperimentService {
         currentExperiment.setExperimentValue(data.experimentValue());
         currentExperiment.setRun(data.run());
         currentExperiment.setStartTime(startTime);
-        currentExperiment.setSamples(new ArrayList<>());
+        currentExperiment.setLocalSamples(new ArrayList<>());
+        currentExperiment.setRemoteSample(new ArrayList<>());
     }
 
     public void stop() throws IOException {
@@ -86,8 +89,8 @@ public class ExperimentService {
                         Instant.now()
                 ).toMillis();
 
-        ExperimentSampleDto sample =
-                new ExperimentSampleDto(
+        ExperimentData sample =
+                new ExperimentData(
 
                         elapsed,
 
@@ -109,8 +112,12 @@ public class ExperimentService {
                         data.framesDropped()
                 );
 
-        currentExperiment
-                .getSamples()
-                .add(sample);
+        if (data.type() == DataType.LOCAL) {
+            currentExperiment.getLocalSamples().add(sample);
+            System.out.println("Added Local Sample. Total now: " + currentExperiment.getLocalSamples().size());
+        } else if (data.type() == DataType.REMOTE) {
+            currentExperiment.getRemoteSample().add(sample);
+            System.out.println("Added Remote Sample. Total now: " + currentExperiment.getRemoteSample().size());
+        }
     }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { createPeerConnection } from "../service/webrtc";
 import { socket } from "../service/websockets";
@@ -28,9 +28,13 @@ export function Room(): React.JSX.Element {
 
     const iceCandidatesQueue = useRef<RTCIceCandidateInit[]>([]);
 
+    const [mute,setMute] = useState(false);
+
+    const [video,setVideo] = useState(true);  
 
 
-        const processQueuedCandidates = async () => {
+
+    const processQueuedCandidates = async () => {
     
         while (iceCandidatesQueue.current.length > 0) {
 
@@ -49,34 +53,36 @@ export function Room(): React.JSX.Element {
     const isVideoEnabled = useRef(true);
     const isAudioEnabled = useRef(true);
 
-
+   
     const toggleVideo = () => {
-    const stream = localVideoRef.current?.srcObject as MediaStream;
-    if (!stream) {
-        console.warn("No active camera stream found to toggle.");
-        return;
-    }
+        const stream = localVideoRef.current?.srcObject as MediaStream;
+        if (!stream) {
+            console.warn("No active camera stream found to toggle.");
+            return;
+        }
+    
+        isVideoEnabled.current = !isVideoEnabled.current;
+        setVideo(prev => !prev);
+        stream.getVideoTracks().forEach(track => {
+            track.enabled = isVideoEnabled.current;
+        });
+        console.log(`Camera active state: ${isVideoEnabled.current}`);
+    };
 
-    isVideoEnabled.current = !isVideoEnabled.current;
-    stream.getVideoTracks().forEach(track => {
-        track.enabled = isVideoEnabled.current;
-    });
-    console.log(`Camera active state: ${isVideoEnabled.current}`);
-};
-
-const toggleAudio = () => {
-    const stream = localVideoRef.current?.srcObject as MediaStream;
-    if (!stream) {
-        console.warn("No active mic stream found to toggle.");
-        return;
-    }
-
-    isAudioEnabled.current = !isAudioEnabled.current;
-    stream.getAudioTracks().forEach(track => {
-        track.enabled = isAudioEnabled.current;
-    });
-    console.log(`Mic active state: ${isAudioEnabled.current}`);
-};
+    const toggleAudio = () => {
+        const stream = localVideoRef.current?.srcObject as MediaStream;
+        if (!stream) {
+            console.warn("No active mic stream found to toggle.");
+            return;
+        }
+    
+        isAudioEnabled.current = !isAudioEnabled.current;
+        setMute(prev => !prev);
+        stream.getAudioTracks().forEach(track => {
+            track.enabled = isAudioEnabled.current;
+        });
+        console.log(`Mic active state: ${isAudioEnabled.current}`);
+    };
 
 
 
@@ -208,7 +214,7 @@ useEffect(() => {
         socket.onmessage = null; 
     };
 
-}, [roomId, peerConnection]); // 👈 Only ONE unified hook tracking the lifecycle
+}, [roomId, peerConnection]); 
 
 
 return (
@@ -218,23 +224,30 @@ return (
             Room {roomId}
         </h1>
 
-        {/* 🌟 Responsive Control Buttons Group */}
+
         <div className="flex flex-wrap gap-3 mb-6 max-w-6xl mx-auto">
-            <button 
-                onClick={toggleVideo} 
-                className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition-all duration-150"
+            <button
+                onClick={toggleVideo}
+                className={`px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-md active:scale-95 transition-all duration-150 ${
+                    video
+                        ? "bg-blue-600 hover:bg-blue-700"
+                        : "bg-red-600 hover:bg-red-700"
+                }`}
             >
-                Toggle Camera
+                {video ? "Turn Camera Off" : "Turn Camera On"}
             </button>
-            <button 
-                onClick={toggleAudio} 
-                className="px-4 py-2 text-sm font-semibold text-white bg-slate-700 rounded-lg shadow-md hover:bg-slate-800 active:scale-95 transition-all duration-150"
+            <button
+                onClick={toggleAudio}
+                className={`px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-md active:scale-95 transition-all duration-150 ${
+                    mute
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-green-600 hover:bg-green-700"
+                }`}
             >
-                Toggle Mic
+                {mute ? "Unmute Mic" : "Mute Mic"}
             </button>
         </div>
 
-        {/* 🌟 Responsive Video Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl mx-auto">
 
             <div className="flex flex-col">

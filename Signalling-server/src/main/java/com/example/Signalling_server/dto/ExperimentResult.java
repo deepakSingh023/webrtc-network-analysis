@@ -15,5 +15,7 @@ public class ExperimentResult {
 
     private Instant startTime;
 
-    private List<ExperimentSampleDto> samples;
+    private List<ExperimentData>  localSamples;
+
+    private List<ExperimentData> remoteSample;
 }

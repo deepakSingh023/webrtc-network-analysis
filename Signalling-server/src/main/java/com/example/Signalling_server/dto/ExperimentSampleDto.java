@@ -1,5 +1,7 @@
 package com.example.Signalling_server.dto;
 
+import com.example.Signalling_server.enums.DataType;
+
 public record ExperimentSampleDto(
 
         long elapsedTime,
@@ -19,6 +21,8 @@ public record ExperimentSampleDto(
 
         double fps,
 
-        long framesDropped
+        long framesDropped,
+
+        DataType type
 
 ) {}
