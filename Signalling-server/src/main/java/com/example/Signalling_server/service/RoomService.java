@@ -4,6 +4,8 @@ import com.example.Signalling_server.dto.Room;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,6 +55,9 @@ public class RoomService {
         return rooms.get(roomId);
     }
 
+    public Collection<Room> getAllActiveRooms() {
+        return rooms.values();
+    }
     public void removeSession(WebSocketSession session) {
 
         rooms.entrySet().removeIf(entry -> {

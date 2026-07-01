@@ -84,6 +84,23 @@ export function Room(): React.JSX.Element {
         console.log(`Mic active state: ${isAudioEnabled.current}`);
     };
 
+    const endCall = () =>{
+        socket.send(
+            JSON.stringify(
+                {
+                    type: "END_CALL",
+                    roomId: roomId,
+                    payload: null
+
+                }
+            ) 
+        )
+
+        peerConnection.close();
+
+        window.location.href = "/"; 
+    }
+
 
 
 
@@ -179,6 +196,20 @@ useEffect(() => {
                 }
                 break;
 
+            case "BYE":
+                console.log("Peer has left the room.");
+                
+                if(remoteVideoRef.current ){
+                    remoteVideoRef.current.srcObject = null;
+                }
+
+                peerConnection.close();
+                
+                window.location.href = "/";
+
+                alert("The other participant has left the call.");
+                break;
+
             default:
                 console.warn("Unknown message type", data.type);
         }
@@ -211,6 +242,18 @@ useEffect(() => {
 
     // 4. CLEANUP ON DISCONNECT
     return () => {
+
+        console.log("Cleaning up resources...");
+
+        const stream = localVideoRef.current?.srcObject as MediaStream;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    
+
+        peerConnection.close();
+        peerConnectionRef.current = null; 
+
         socket.onmessage = null; 
     };
 
@@ -224,7 +267,7 @@ return (
             Room {roomId}
         </h1>
 
-
+        {/* 🌟 Action Control Buttons Group */}
         <div className="flex flex-wrap gap-3 mb-6 max-w-6xl mx-auto">
             <button
                 onClick={toggleVideo}
@@ -246,8 +289,18 @@ return (
             >
                 {mute ? "Unmute Mic" : "Mute Mic"}
             </button>
+            
+            {/* 🌟 THE ADDITION: High-Visibility, Responsive End Call Button */}
+            <button
+                onClick={endCall}
+                className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-md active:scale-95 hover:shadow-lg transition-all duration-150 flex items-center gap-2 border border-rose-500/20"
+            >
+                {/* Minimalist Phone Hanging Up Emoji Sub-Anchor */}
+                📞 End Call
+            </button>
         </div>
 
+        {/* Responsive Video Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl mx-auto">
 
             <div className="flex flex-col">
